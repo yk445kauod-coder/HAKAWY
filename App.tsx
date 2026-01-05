@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Story, ForumPost, CollabProject, User, Message, Comment } from './types';
 import { generateDailyStories, remixStory, completeMissingParts } from './services/geminiService';
@@ -74,23 +73,11 @@ const App: React.FC = () => {
         setMessages(msgs.sort((a,b) => a.timestamp.localeCompare(b.timestamp)));
       }
 
-      const incomplete = allLoadedStories.filter(x => !x.isUserStory && (!x.day1 || !x.day2 || !x.day3));
-      if (incomplete.length > 0) {
-        setIsGeneratingAI(true);
-        const completions = await Promise.all(incomplete.map(st => completeMissingParts(st)));
-        const validCompletions = completions.filter(x => x !== null) as Story[];
-        if (validCompletions.length > 0) {
-          await saveStoriesToDb(validCompletions);
-          allLoadedStories = await loadStoriesFromDb();
-          setStories(getActiveStories(allLoadedStories));
-        }
-        setIsGeneratingAI(false);
-      }
-
       const todayStr = new Date().toISOString().split('T')[0];
       const aiToday = allLoadedStories.filter(x => !x.isUserStory && x.startDate.startsWith(todayStr));
       
-      if (aiToday.length < 2) {
+      // Requirement: 10 new stories daily
+      if (aiToday.length < 10) {
         setIsGeneratingAI(true);
         const newAI = await generateDailyStories(allLoadedStories);
         if (newAI.length) {
@@ -100,6 +87,21 @@ const App: React.FC = () => {
         }
         setIsGeneratingAI(false);
       }
+
+      // Final check for completions of any existing active stories
+      const incomplete = getActiveStories(allLoadedStories).filter(x => !x.isUserStory && (!x.day1 || !x.day2 || !x.day3));
+      if (incomplete.length > 0) {
+        setIsGeneratingAI(true);
+        const completions = await Promise.all(incomplete.map(st => completeMissingParts(st)));
+        const validCompletions = completions.filter(x => x !== null) as Story[];
+        if (validCompletions.length > 0) {
+          await saveStoriesToDb(validCompletions);
+          const finalRefreshed = await loadStoriesFromDb();
+          setStories(getActiveStories(finalRefreshed));
+        }
+        setIsGeneratingAI(false);
+      }
+
     } catch (e) {
       console.error("Sync Error:", e);
     } finally {
@@ -210,7 +212,7 @@ const App: React.FC = () => {
                         disabled={!forumInput.trim()}
                         className="bg-indigo-600 disabled:opacity-50 text-white font-black px-8 py-2.5 rounded-full text-sm hover:bg-rose-600 transition-all shadow-xl active:scale-95"
                        >
-                         نشر التغريدة
+                         نشر الهمسة
                        </button>
                     </div>
                   </form>
@@ -225,8 +227,8 @@ const App: React.FC = () => {
                 
                 return (
                   <React.Fragment key={p.id}>
-                    {/* Loopy Ads in Forum: Every 4 posts */}
-                    {index > 0 && index % 4 === 0 && <AdPlaceholder />}
+                    {/* Loopy Ad Placement in Forum */}
+                    {index > 0 && index % 5 === 0 && <AdPlaceholder />}
                     
                     <div className="bg-transparent py-6 hover:bg-[var(--bg-secondary)]/30 transition-all group px-4 rounded-xl mb-1">
                       <div className="flex gap-4">
@@ -264,10 +266,6 @@ const App: React.FC = () => {
                              >
                                 <i className={`${p.likes > 0 ? 'fa-solid' : 'fa-regular'} fa-heart text-lg`}></i>
                                 <span>{p.likes || 0}</span>
-                             </button>
-                             <button className="flex items-center gap-2 hover:text-sky-400 transition-all text-xs">
-                                <i className="fa-solid fa-chart-simple text-lg"></i>
-                                <span className="font-bold">{Math.floor(Math.random()*500) + 10}</span>
                              </button>
                              <button className="flex items-center gap-2 hover:text-sky-400 transition-all text-xs">
                                 <i className="fa-solid fa-share-nodes text-lg"></i>
@@ -332,7 +330,7 @@ const App: React.FC = () => {
               <textarea name="day1" placeholder="ابدأ الفصل الأول من هنا..." className="w-full bg-[var(--bg-secondary)] p-5 rounded-2xl text-[var(--text-main)] border border-[var(--border-color)] outline-none focus:border-sky-400 h-32" />
               <button className="bg-sky-500 hover:bg-sky-400 text-black px-10 py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95">تأسيس المخطوطة</button>
             </form>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {collabs.map(c => (
                 <div key={c.id} className="glass-morphism p-8 rounded-[3rem] group hover:border-sky-500/50 transition-all">
                   <div className="flex justify-between mb-6">
@@ -434,7 +432,7 @@ const App: React.FC = () => {
               <div className="mb-12 glass-morphism p-12 rounded-[3.5rem] animate-pulse flex flex-col items-center justify-center text-center">
                  <div className="w-14 h-14 border-4 border-t-rose-600 border-indigo-600 rounded-full animate-spin mb-6"></div>
                  <h4 className="text-2xl font-black text-indigo-500 mb-2">حكواتي الذكاء ينسج عوالم جديدة...</h4>
-                 <p className="text-[11px] font-bold text-[var(--text-sub)] uppercase tracking-widest italic">يرجى الانتظار، جاري استحضار الأرواح الروائية</p>
+                 <p className="text-[11px] font-bold text-[var(--text-sub)] uppercase tracking-widest italic">يرجى الانتظار، جاري استحضار 10 روايات جديدة</p>
               </div>
             )}
 
@@ -444,8 +442,8 @@ const App: React.FC = () => {
               {loading ? <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></> : (
                 filtered.map((story, index) => (
                   <React.Fragment key={story.id}>
-                    {/* Loopy Ads in Story Feed: Every 2 stories */}
-                    {index > 0 && index % 2 === 0 && <div className="col-span-full"><AdPlaceholder /></div>}
+                    {/* Loopy Ads in Story Feed: Every 3 stories */}
+                    {index > 0 && index % 3 === 0 && <div className="col-span-full"><AdPlaceholder /></div>}
                     <StoryCard story={story} userName={user?.username || 'زائر'} onReadFull={() => setSelectedStory(story)} />
                   </React.Fragment>
                 ))

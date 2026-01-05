@@ -1,7 +1,7 @@
-
 import { Story } from "../types";
 
 async function callGeminiApi(action: string, payload: any) {
+  // Proxied to Netlify Function via netlify.toml
   const res = await fetch('/api/gemini', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -22,18 +22,20 @@ async function generateCover(prompt: string): Promise<string | undefined> {
 }
 
 export const generateDailyStories = async (existingStories: Story[]): Promise<Story[]> => {
-  const contextTitles = existingStories.map(s => s.title).slice(-5).join(', ');
+  const contextTitles = existingStories.map(s => s.title).slice(-15).join(', ');
   try {
-    const prompt = `بصفتك "حكواتي المحروسة" الأعظم، قم بتأليف روايتين (2) ملحميتين مصريتين كاملتين. 
-    يجب أن يحتوي كل عمل على 3 فصول كاملة (Day 1, Day 2, Day 3) يتم توليدها جميعاً الآن.
-    الفصول يجب أن تكون طويلة جداً وبأسلوب أدبي مصري بليغ.
-    العناوين السابقة لتجنب التكرار: [${contextTitles}].`;
+    const prompt = `بصفتك "حكواتي المحروسة" الأعظم، قم بتأليف عشرة (10) روايات ملحمية مصرية جديدة بالكامل اليوم. 
+    يجب أن تحتوي كل رواية على 3 فصول كاملة (Day 1, Day 2, Day 3).
+    الفصول يجب أن تكون بأسلوب أدبي مصري بليغ ومشوق جداً، تنتهي بفصول معلقة (Cliffhangers) قوية جداً لتشويق القارئ للعودة غداً.
+    تأكد من تنوع الأنواع بين الدراما، الرعب، والرومانسية (كلها بطابع مصري أصيل).
+    العناوين السابقة لتجنب التكرار: [${contextTitles}].
+    أنتج بالضبط 10 روايات في مصفوفة JSON.`;
 
     const data = await callGeminiApi('generateDaily', { prompt });
     const rawData = JSON.parse(data.text || "[]");
     const today = new Date().toISOString();
     
-    return await Promise.all(rawData.slice(0, 2).map(async (s: any, index: number) => {
+    return await Promise.all(rawData.slice(0, 10).map(async (s: any, index: number) => {
       const cover = await generateCover(s.imagePrompt);
       return { 
         ...s, 

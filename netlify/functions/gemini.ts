@@ -19,23 +19,28 @@ const STORY_SCHEMA = {
   }
 };
 
-export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+export const handler = async (event: any) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
   }
-
-  const { action, payload } = req.body;
-  
-  // Use process.env.API_KEY exclusively
-  const apiKey = process.env.API_KEY;
-  
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API_KEY is not configured.' });
-  }
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
+    const { action, payload } = JSON.parse(event.body);
+    
+    // Requirement: Use process.env.API_KEY exclusively
+    const apiKey = process.env.API_KEY;
+    
+    if (!apiKey) {
+      return { 
+        statusCode: 500, 
+        body: JSON.stringify({ error: 'API_KEY is not configured in Netlify environment variables.' }) 
+      };
+    }
+
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    let result: any = {};
+
     switch (action) {
       case 'generateDaily': {
         const response = await ai.models.generateContent({
@@ -47,7 +52,8 @@ export default async function handler(req: any, res: any) {
             thinkingConfig: { thinkingBudget: 32000 }
           },
         });
-        return res.status(200).json({ text: response.text });
+        result = { text: response.text };
+        break;
       }
       case 'complete': {
         const response = await ai.models.generateContent({
@@ -67,7 +73,8 @@ export default async function handler(req: any, res: any) {
             thinkingConfig: { thinkingBudget: 15000 }
           }
         });
-        return res.status(200).json({ text: response.text });
+        result = { text: response.text };
+        break;
       }
       case 'remix': {
         const response = await ai.models.generateContent({
@@ -90,7 +97,8 @@ export default async function handler(req: any, res: any) {
             thinkingConfig: { thinkingBudget: 20000 }
           }
         });
-        return res.status(200).json({ text: response.text });
+        result = { text: response.text };
+        break;
       }
       case 'generateImage': {
         const response = await ai.models.generateContent({
@@ -99,14 +107,24 @@ export default async function handler(req: any, res: any) {
             parts: [{ text: payload.prompt }],
           },
         });
-        const imagePart = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-        return res.status(200).json({ image: imagePart?.inlineData?.data });
+        const imagePart = response.candidates?.[0]?.content?.parts.find((p: any) => p.inlineData);
+        result = { image: imagePart?.inlineData?.data };
+        break;
       }
       default:
-        return res.status(400).json({ error: 'Invalid action' });
+        return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action' }) };
     }
+
+    return {
+      statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(result)
+    };
   } catch (error: any) {
     console.error("Gemini API Error:", error);
-    return res.status(500).json({ error: error.message });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    };
   }
-}
+};
