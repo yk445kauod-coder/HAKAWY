@@ -225,7 +225,7 @@ const App: React.FC = () => {
                 
                 return (
                   <React.Fragment key={p.id}>
-                    {/* Loopy Ad Placeholder in Forum - Every 4 posts */}
+                    {/* Loopy Ads in Forum: Every 4 posts */}
                     {index > 0 && index % 4 === 0 && <AdPlaceholder />}
                     
                     <div className="bg-transparent py-6 hover:bg-[var(--bg-secondary)]/30 transition-all group px-4 rounded-xl mb-1">
@@ -444,7 +444,7 @@ const App: React.FC = () => {
               {loading ? <><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></> : (
                 filtered.map((story, index) => (
                   <React.Fragment key={story.id}>
-                    {/* Loopy Ad Placeholder in Main Feed - Every 2 items */}
+                    {/* Loopy Ads in Story Feed: Every 2 stories */}
                     {index > 0 && index % 2 === 0 && <div className="col-span-full"><AdPlaceholder /></div>}
                     <StoryCard story={story} userName={user?.username || 'زائر'} onReadFull={() => setSelectedStory(story)} />
                   </React.Fragment>
