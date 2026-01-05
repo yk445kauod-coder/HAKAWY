@@ -17,6 +17,6 @@
     "jsx": "react-jsx"
   },
   "include": ["./**/*.ts", "./**/*.tsx"],
-  "exclude": ["node_modules", "dist", "vite.config.ts"],
+  "exclude": ["node_modules", "dist", "vite.config.ts", "netlify/functions/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
