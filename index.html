@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>حكاوي - قصص وروايات مصرية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+      :root {
+        /* Dark Mode Semantic Variables */
+        --bg-main: #020617;
+        --bg-secondary: #0f172a;
+        --bg-tertiary: #1e293b;
+        --nav-bg: rgba(2, 6, 23, 0.9);
+        --text-main: #f8fafc;
+        --text-sub: #94a3b8;
+        --text-muted: #64748b;
+        --accent-primary: #6366f1;
+        --accent-secondary: #f43f5e;
+        --accent-success: #10b981;
+        --border-color: rgba(255, 255, 255, 0.1);
+        --glass: rgba(15, 23, 42, 0.8);
+        --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+      }
+
+      [data-theme='light'] {
+        /* Light Mode Semantic Variables (Smart Contrast) */
+        --bg-main: #f8fafc;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #f1f5f9;
+        --nav-bg: rgba(255, 255, 255, 0.95);
+        --text-main: #020617;
+        --text-sub: #334155;
+        --text-muted: #64748b;
+        --accent-primary: #4f46e5;
+        --accent-secondary: #e11d48;
+        --accent-success: #059669;
+        --border-color: rgba(0, 0, 0, 0.1);
+        --glass: rgba(255, 255, 255, 0.8);
+        --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        font-family: 'Cairo', sans-serif;
+        overflow-x: hidden;
+        transition: background-color 0.4s ease, color 0.4s ease;
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Smart Contrast System Helper Classes */
+      .bg-surface { background-color: var(--bg-secondary); }
+      .bg-body { background-color: var(--bg-main); }
+      .text-primary { color: var(--text-main); }
+      .text-secondary { color: var(--text-sub); }
+      .border-main { border-color: var(--border-color); }
+
+      .glass-morphism {
+        background: var(--glass);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+      }
+
+      .premium-shadow {
+        box-shadow: var(--shadow);
+      }
+
+      /* Animations */
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+      }
+      .float { animation: float 6s ease-in-out infinite; }
+
+      .fade-in-up {
+        animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .scale-hover {
+        transition: transform 0.4s cubic-bezier(0.3, 1, 0.3, 1), box-shadow 0.4s ease;
+      }
+      .scale-hover:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Story Card Overlays always remain dark for readability over images */
+      .story-card-overlay {
+        background: linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(15, 23, 42, 0.3) 60%, transparent 100%);
+      }
+
+      /* Reading Modes with Explicit Colors */
+      .read-mode-dark { 
+        --read-bg: #020617; 
+        --read-text: #f8fafc; 
+        --read-accent: #6366f1;
+        background-color: var(--read-bg) !important;
+        color: var(--read-text) !important;
+      }
+      .read-mode-light { 
+        --read-bg: #ffffff; 
+        --read-text: #020617; 
+        --read-accent: #4f46e5;
+        background-color: var(--read-bg) !important;
+        color: var(--read-text) !important;
+      }
+      .read-mode-sepia { 
+        --read-bg: #f4ecd8; 
+        --read-text: #433422; 
+        --read-accent: #8b4513;
+        background-color: var(--read-bg) !important;
+        color: var(--read-text) !important;
+      }
+      .read-mode-blue { 
+        --read-bg: #0f172a; 
+        --read-text: #bae6fd; 
+        --read-accent: #38bdf8;
+        background-color: var(--read-bg) !important;
+        color: var(--read-text) !important;
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: var(--bg-main); }
+      ::-webkit-scrollbar-thumb { 
+        background: var(--accent-primary); 
+        border-radius: 20px;
+        border: 2px solid var(--bg-main);
+      }
+
+      @media (max-width: 640px) {
+        .mobile-p-safe { padding: 1.25rem; }
+        h1 { font-size: 2.25rem !important; }
+      }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "react": "https://esm.sh/react@^19.2.3",
+        "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "jspdf": "https://esm.sh/jspdf@^2.5.1",
+        "html2canvas": "https://esm.sh/html2canvas@^1.4.1"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
